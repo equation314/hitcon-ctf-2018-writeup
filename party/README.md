@@ -160,7 +160,7 @@ void work_on_a_valid_set(ll vset)
         ll lowbit = tmp & -tmp;
         ll core = vset - lowbit;
         tmp -= lowbit;
-        if ((h[core % P] |= lowbit) | core == (1ll << 37) - 1)
+        if (((h[core % P] |= lowbit) | core) == (1ll << 37) - 1)
         {
             if (occurred[core])
                 continue;
@@ -175,6 +175,8 @@ void product_all_valid_set()
     // ...
 }
 ```
+
+In order to validate the core set that may not satisfy condition 3, we can reuse the given program with some instructions patched by `nop`.
 
 There are plenty of feasible solutions, the algorithm don't have to run too long to before reaching a solution. One of the solutions is `645q9f3ozytrac`.
 
