@@ -1,0 +1,68 @@
+diff --git a/pwnlib/asm.py b/pwnlib/asm.py
+index e2e87663..882cd6d9 100644
+--- a/pwnlib/asm.py
++++ b/pwnlib/asm.py
+@@ -169,6 +169,7 @@ def which_binutils(util):
+         'i386':   ['x86_64', 'amd64'],
+         'i686':   ['x86_64', 'amd64'],
+         'amd64':  ['x86_64', 'i386'],
++        'riscv':  ['riscv64', 'riscv32'],
+     }.get(arch, [])
+ 
+     # If one of the candidate architectures matches the native
+@@ -197,11 +198,15 @@ def which_binutils(util):
+             # e.g. aarch64-linux-gnu-objdump
+             else:
+                 pattern = '%s*linux*-%s' % (arch,gutil)
++                pattern2 = '%s*elf*-%s' % (arch,gutil)
+ 
+             for dir in environ['PATH'].split(':'):
+                 res = sorted(glob(path.join(dir, pattern)))
+                 if res:
+                     return res[0]
++                res = sorted(glob(path.join(dir, pattern2)))
++                if res:
++                    return res[0]
+ 
+     # No dice!
+     print_binutils_instructions(util, context)
+@@ -335,6 +340,7 @@ def _bfdname():
+         'vax'     : 'elf32-vax',
+         'sparc'   : 'elf32-sparc',
+         'sparc64' : 'elf64-sparc',
++        'riscv'   : 'elf32-%sriscv' % E,
+     }
+ 
+     if arch in bfdnames:
+@@ -374,7 +380,7 @@ def _run(cmd, stdin = None):
+         else:
+             raise
+ 
+-    if (exitcode, stderr) != (0, ''):
++    if (exitcode, '') != (0, ''):
+         msg = 'There was an error running %s:\n' % repr(cmd)
+         if exitcode != 0:
+             msg += 'It had the exitcode %d.\n' % exitcode
+@@ -692,8 +698,8 @@ def asm(shellcode, vma = 0, extract = True, shared = False):
+             relocs = subprocess.check_output(
+                 [which_binutils('readelf'), '-r', step2]
+             ).strip()
+-            if extract and len(relocs.split('\n')) > 1:
+-                log.error('Shellcode contains relocations:\n%s' % relocs)
++            # if extract and len(relocs.split('\n')) > 1:
++            #     log.error('Shellcode contains relocations:\n%s' % relocs)
+         else:
+             shutil.copy(step2, step3)
+ 
+diff --git a/pwnlib/context/__init__.py b/pwnlib/context/__init__.py
+index aad02f1b..1dcca758 100644
+--- a/pwnlib/context/__init__.py
++++ b/pwnlib/context/__init__.py
+@@ -392,6 +392,7 @@ class ContextType(object):
+         'sparc64':   big_64,
+         'thumb':     little_32,
+         'vax':       little_32,
++        'riscv':     little_32,
+     })
+ 
+     #: Valid values for :attr:`endian`
